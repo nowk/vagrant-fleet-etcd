@@ -8,11 +8,16 @@ COREOS_VAGRANT_JSON = "http://%s.release.core-os.net/amd64-usr/current/coreos_pr
 require 'fileutils'
 
 CLOUD_CONFIG_ETCD = File.join(File.dirname(__FILE__), "user-data.etcd")
+CLOUD_CONFIG_NODE = File.join(File.dirname(__FILE__), "user-data.node")
 
 # server struct
 Server = Struct.new(:name, :cpus, :memory, :ip, :is_etcd) do
-  def is_node
-    !(!!is_etcd)
+  def is_etcd?
+    is_etcd
+  end
+
+  def is_node?
+    !(!!is_etcd?)
   end
 
   def box
@@ -22,6 +27,14 @@ Server = Struct.new(:name, :cpus, :memory, :ip, :is_etcd) do
   def update_channel
     "stable"
   end
+
+  def cloud_config
+    if is_node?
+      CLOUD_CONFIG_NODE
+    else
+      CLOUD_CONFIG_ETCD
+    end
+  end
 end
 
 servers = [
@@ -29,10 +42,10 @@ servers = [
   Server.new("etcd-01", 1, 512, "192.168.10.101", true),
   Server.new("etcd-02", 1, 512, "192.168.10.102", true),
 
-  # Server.new("node-00", 1, 1024, "192.168.10.110", false),
-  # Server.new("node-01", 1, 1024, "192.168.10.111", false),
-  # Server.new("node-02", 1, 1024, "192.168.10.112", false),
-  # Server.new("node-03", 1, 1024, "192.168.10.113", false),
+  Server.new("node-00", 1, 1024, "192.168.10.110", false),
+  Server.new("node-01", 1, 1024, "192.168.10.111", false),
+  Server.new("node-02", 1, 1024, "192.168.10.112", false),
+  Server.new("node-03", 1, 1024, "192.168.10.113", false),
 ]
 
 
@@ -58,6 +71,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |c|
         vb.cpus = s.cpus
         vb.memory = s.memory
 
+        # 100% cpu fix
         vb.customize "pre-boot", ['modifyvm', :id, '--nestedpaging', 'off']
 
         # On VirtualBox, we don't have guest additions or a functional vboxsf
@@ -66,19 +80,13 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |c|
         vb.functional_vboxsf = false
       end
 
-      if s.is_etcd
-        n.vm.provision :file,
-          source: "#{CLOUD_CONFIG_ETCD}",
-          destination: "/tmp/vagrantfile-user-data"
+      # provision the servers with their respective cloud-configs
+      n.vm.provision :file,
+        source: "#{s.cloud_config}", destination: "/tmp/vagrantfile-user-data"
 
-        n.vm.provision :shell,
-          inline: "mv /tmp/vagrantfile-user-data /var/lib/coreos-vagrant/",
-          privileged: true
-      end
-
-      if s.is_node
-        # TODO provision nodes
-      end
+      n.vm.provision :shell,
+        inline: "mv /tmp/vagrantfile-user-data /var/lib/coreos-vagrant/",
+        privileged: true
     end
   end
 end

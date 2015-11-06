@@ -1,0 +1,38 @@
+#cloud-config
+# vim: set filetype=yaml :
+
+coreos:
+  fleet:
+    public-ip: "$public_ipv4"
+    # TODO dynamically configured for the etcd cluster
+    # TODO tls/ssl and all that security jazz
+    etcd_servers: "http://192.168.10.100:4001,http://192.168.10.101:4001,http://192.168.10.102:4001"
+    etcd_key_prefix: "/fleet"
+
+  units:
+    - name: etcd.service
+      command: stop
+      enable: false
+
+    - name: fleet.service
+      command: start
+
+    - name: flanneld.service
+      command: stop
+      enable: false
+
+    - name: docker-tcp.socket
+      command: start
+      enable: true
+      content: |
+        [Unit]
+        Description=Docker Socket for the API
+
+        [Socket]
+        ListenStream=2375
+        BindIPv6Only=both
+        Service=docker.service
+
+        [Install]
+        WantedBy=sockets.target
+
