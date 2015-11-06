@@ -11,7 +11,7 @@ Fleet cluster backed by etcd on Vagrant *(VirtualBox only)*
 
 This the `cloud-config` for the etcd boxes.
 
-    user-data.node
+    user-data.fleet
 
 The `cound-config` for the Fleet nodes.
 
@@ -35,11 +35,11 @@ To launch the vagrant boxes. By default you will get a 3 box etcd cluster and a
 4 box fleet cluster.
 
 
-    vagrant ssh node-00
+    vagrant ssh fleet-00
 
 and you will be on the first node box.
 
-_(`$` is within a node-* box.)_
+_(`$` is within a fleet-* box.)_
 
 
     $ fleetctl list-machines
@@ -87,7 +87,7 @@ defined in the unit file's `[X-Fleet]`.
 
 Lets play...
 
-    vagrant halt node-01
+    vagrant halt fleet-01
 
 Drop a node, bye-bye.
 
@@ -108,7 +108,7 @@ Drop a node, bye-bye.
 another node)*
 
 
-    vagrant up node-01
+    vagrant up fleet-01
 
 Bring the node back online.
 

@@ -8,7 +8,7 @@ COREOS_VAGRANT_JSON = "http://%s.release.core-os.net/amd64-usr/current/coreos_pr
 require 'fileutils'
 
 CLOUD_CONFIG_ETCD = File.join(File.dirname(__FILE__), "user-data.etcd")
-CLOUD_CONFIG_NODE = File.join(File.dirname(__FILE__), "user-data.node")
+CLOUD_CONFIG_FLEET = File.join(File.dirname(__FILE__), "user-data.fleet")
 
 # server struct
 Server = Struct.new(:name, :cpus, :memory, :ip, :is_etcd) do
@@ -16,7 +16,7 @@ Server = Struct.new(:name, :cpus, :memory, :ip, :is_etcd) do
     is_etcd
   end
 
-  def is_node?
+  def is_fleet?
     !(!!is_etcd?)
   end
 
@@ -29,8 +29,8 @@ Server = Struct.new(:name, :cpus, :memory, :ip, :is_etcd) do
   end
 
   def cloud_config
-    if is_node?
-      CLOUD_CONFIG_NODE
+    if is_fleet?
+      CLOUD_CONFIG_FLEET
     else
       CLOUD_CONFIG_ETCD
     end
@@ -42,10 +42,10 @@ servers = [
   Server.new("etcd-01", 1, 512, "192.168.10.101", true),
   Server.new("etcd-02", 1, 512, "192.168.10.102", true),
 
-  Server.new("node-00", 1, 1024, "192.168.10.110", false),
-  Server.new("node-01", 1, 1024, "192.168.10.111", false),
-  Server.new("node-02", 1, 1024, "192.168.10.112", false),
-  Server.new("node-03", 1, 1024, "192.168.10.113", false),
+  Server.new("fleet-00", 1, 1024, "192.168.10.110", false),
+  Server.new("fleet-01", 1, 1024, "192.168.10.111", false),
+  Server.new("fleet-02", 1, 1024, "192.168.10.112", false),
+  Server.new("fleet-03", 1, 1024, "192.168.10.113", false),
 ]
 
 
