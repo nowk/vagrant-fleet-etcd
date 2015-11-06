@@ -1,0 +1,8 @@
+[Unit]
+Description=ticker
+
+[Service]
+ExecStart=/bin/bash -c "while true ; do date; sleep 1s; done"
+
+[X-Fleet]
+Conflicts=ticker@*.service
