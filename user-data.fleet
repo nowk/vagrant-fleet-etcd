@@ -9,6 +9,12 @@ coreos:
     etcd_servers: "http://192.168.10.100:4001,http://192.168.10.101:4001,http://192.168.10.102:4001"
     etcd_key_prefix: "/fleet"
 
+  flannel:
+    interface: $public_ipv4
+    # NOTE we need to set the FLANNELD_ETCD_ENDPOINTS or it will default to
+    # 127.0.0.1:2379/4001
+    etcd_endpoints: "http://192.168.10.100:4001,http://192.168.10.101:4001,http://192.168.10.102:4001"
+
   units:
     - name: etcd.service
       command: stop
@@ -18,8 +24,12 @@ coreos:
       command: start
 
     - name: flanneld.service
-      command: stop
-      enable: false
+      drop-ins:
+        - name: 50-network-config.conf
+          content: |
+            [Service]
+            ExecStartPre=/usr/bin/etcdctl --peers 192.168.10.100:4001,192.168.10.101:4001,192.168.10.102:4001 set /coreos.com/network/config '{ "Network": "10.1.0.0/16" }'
+      command: start
 
     - name: docker-tcp.socket
       command: start
