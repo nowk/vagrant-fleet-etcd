@@ -17,7 +17,7 @@ Server = Struct.new(:name, :cpus, :memory, :ip, :is_etcd) do
   end
 
   def is_fleet?
-    !(!!is_etcd?)
+    !is_etcd?
   end
 
   def box
