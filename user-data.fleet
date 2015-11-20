@@ -18,18 +18,12 @@ coreos:
       command: start
 
     - name: fleet.socket
+      drop-ins:
+        - name: 30-ListenStream.conf
+          content: |
+            [Socket]
+            ListenStream=49153
       command: start
-      content: |
-        [Unit]
-        Description=Fleet Socket for the API
-
-        [Socket]
-        ListenStream=41935
-        BindIPv6Only=both
-        Service=fleet.service
-
-        [Install]
-        WantedBy=sockets.target
 
     - name: flanneld.service
       command: stop
